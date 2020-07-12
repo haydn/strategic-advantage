@@ -1,0 +1,16 @@
+{
+  "name": "strategic-advantage",
+  "version": "0.0.0",
+  "main": "index.js",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "build": "mkdir -p build && cp -r public/* build && tsc --outDir build",
+    "build:watch": "npx copy-and-watch --watch \"public/**/*\" build & tsc --outDir build --watch",
+    "start": "mkdir -p build && (yarn build:watch & npx servor build)"
+  },
+  "devDependencies": {
+    "@types/d3": "^5.7.2",
+    "typescript": "^3.8.3"
+  }
+}
