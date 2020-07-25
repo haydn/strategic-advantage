@@ -2,7 +2,7 @@
   "name": "strategic-advantage",
   "version": "0.0.0",
   "main": "index.js",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "private": true,
   "scripts": {
     "build": "mkdir -p build && cp -r public/* build && tsc --outDir build",
