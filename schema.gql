@@ -1,0 +1,89 @@
+type Query {
+  tile(x: Int!, y: Int!): Tile
+  tiles(x1: Int!, y1: Int!, x2: Int!, y2: Int!): [Tile!]!
+  classification(id: ID!): Classification
+}
+
+type Mutations {
+  setTile(x: Int!, y: Int!, input: TileInput!): Tile!
+}
+
+type Tile {
+  x: Int!
+  y: Int!
+  terrain: Terrain!
+  infrastructure(infrastructure: Infrastructure!): Boolean!
+  resources(resource: Resource!): Int!
+  units(layer: Layer!): Unit
+}
+
+enum Terrain {
+  LAND
+  RIVER
+  SHALLOW_WATER
+  DEEP_WATER
+}
+
+enum Infrastructure {
+  ROAD
+  RAIL
+}
+
+enum Resource {
+  CRUDE_OIL
+  NATURAL_GAS
+  IRON_ORE
+}
+
+enum Layer {
+  SURFACE
+  SKY
+}
+
+type Unit {
+  owner: Player
+  classification: Classification!
+  watermark: Timestamp!
+  contents: [Unit!]!
+}
+
+scalar Timestamp
+
+type Player {
+  name: String!
+}
+
+type Classification {
+  name: String!
+  category: Category!
+  independent: Boolean!
+  weight: Int!
+  layer: Layer!
+  operationRequirements: [Classification!]!
+  # content limits
+  moveAction: MoveAction
+  # take
+  # place
+  # build
+  # transform
+}
+
+enum Category {
+  HUMAN
+  SMALL_VEHICLE
+  LARGE_VEHICLE
+  FIGHTER_JET
+  VOLATILE_LIQUID
+  CARRIABLE
+}
+
+type MoveAction {
+  fuel: Classification!
+  baseCost: Int!
+  profile: MovementProfile!
+}
+
+type MovementProfile {
+  terrain: MovementProfileTerrain!
+  infrastructure: MovementProfileTnfrastructure!
+}

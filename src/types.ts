@@ -1,75 +1,99 @@
-type ID = string;
-
-type int = number;
-
-type Timestamp = string;
-
-type Thunk<T> = T | (() => T);
-
-export type Terrain = "LAND" | "RIVER" | "SHALLOW_WATER" | "DEEP_WATER";
-
-export type Infrastructure = "ROAD" | "RAIL";
-
-export type Resource = "CRUDE_OIL" | "NATURAL_GAS" | "IRON_ORE";
-
-export type Layer = "SURFACE" | "SKY";
-
 export interface Tile {
-  x: int;
-  y: int;
+  id: ID;
+  x: number;
+  y: number;
   terrain: Terrain;
   infrastructure: {
-    [I in Infrastructure]: Boolean;
+    [I in Infrastructure]: boolean;
   };
   resources: {
     // Weight in grams.
-    [R in Resource]: int;
-  };
-  units: {
-    [L in Layer]: Unit | null;
+    [R in Resource]: number;
   };
 }
 
-export interface Unit {
+export type ID = string;
+
+export type Box = [[number, number], [number, number]];
+
+export enum Terrain {
+  LAND = "land",
+  RIVER = "river",
+  SHALLOW_WATER = "shallow_water",
+  DEEP_WATER = "deep_water",
+}
+
+export enum Infrastructure {
+  ROAD = "road",
+  RAIL = "rail",
+}
+
+export enum Resource {
+  CRUDE_OIL = "crude_oil",
+  NATURAL_GAS = "natural_gas",
+  IRON_ORE = "iron_ore",
+}
+
+export enum Layer {
+  SURFACE = "surface",
+  SKY = "sky",
+}
+
+export interface Unit<Autonomous extends boolean = false> {
+  classification: Classification<Autonomous>;
   id: ID;
-  // If this unit is autonomous, is the player who has "locked" this unit.
-  // Another player may be able to seize control, with effort.
-  // Null indicates the unit is not "locked" and can be manipulated by any player.
-  owner: Player | null;
-  classification: Classification;
-  contents: Unit[];
+  position: [[number, number], [number, number]];
+  // If the unit is autonomous, this is the player who controls it. An
+  // autonomous unit cannot be transferred to another player.
+  //
+  // If this unit is not autonomous, this is the player who has "locked" this
+  // unit. Another player may be able to seize control, with effort. Null
+  // indicates the unit is not "locked" and can be manipulated by any player.
+  owner: Autonomous extends true ? Player : Player | null;
   creationDate: Timestamp;
-}
-
-export interface AutonomousUnit extends Unit {
-  owner: Player;
-  // The magic.
-  watermark: Timestamp;
+  // This is the magic.
+  //
+  // Every time an autonomous unit performs an action it costs that unit
+  // time. Instead of keeping track of how much time the unit has available and
+  // constantly updating, we instead keep track of this "watermark" — a
+  // timestamp indicating where a units is "up to". Each time a unit performs
+  // an action the watermark is incremented by the duration of that action.
+  //
+  // We can calculate how much time a unit has available like this:
+  //
+  //   min((current time) - (watermark), (maximum allowed available time))
+  //
+  // If a unit has exceeded the maximum allowed available time, that needs to
+  // be taken into consideration when incrementing the watermark.
+  watermark: Autonomous extends true ? Timestamp : undefined;
+  contents: Unit[];
 }
 
 export interface Player {
   id: ID;
 }
 
-export interface Classification {
+type Timestamp = string;
+
+export interface Classification<Autonomous extends boolean = false> {
   id: ID;
   name: string;
   description: string;
   icon: string;
-  // If true, this unit must always have an owner and cannot have its ownership transfered between players.
-  autonomous: Boolean;
-  // Layer this unit operates on.
+  // If true, this unit must always have an owner and cannot have its ownership transferred between players.
+  autonomous: Autonomous;
+  // Layer this unit operates on. Unit that can operate on multiple layers
+  // (such as helicopters) should me modelled as 2 separate units and a transform operation should be used to 
   layer: Layer;
   // Empty weight in grams.
-  weight: int;
+  weight: number;
   // Maximum weight of all content in grams.
-  maxContentWeight: int;
+  maxContentWeight: number;
   // Units that must be contained within this unit for it to operate.
   operationRequirements: Classification[];
   //
   containers: Container[];
   // Null indicates the unit cannot move.
-  // An empty array indicates the unit moves without consuming fuel.
   fuel: Classification | null;
 
   // Number of moves per unit of fuel.
@@ -82,12 +106,12 @@ export interface Classification {
   // Null indicates the unit can neither move on the terrain nor be placed no the terrain.
   terrain: {
     // Time in milliseconds.
-    [T in Terrain]: int | null;
+    [T in Terrain]: number | undefined;
   };
   // Same as terrain, but for infrastructure. Infrastructure takes precedence over terrain.
   infrastructure: {
     // Time in milliseconds.
-    [I in Infrastructure]: int | null;
+    [I in Infrastructure]: number | undefined;
   };
   actions: Action[];
 }
@@ -97,7 +121,7 @@ export interface Container {
   // Units allowed in this container.
   classifications: Classification[];
   // Maximum number of units.
-  max: int;
+  max: number;
 }
 
 export type Action = TakeAction | PlaceAction | BuildAction | TransformAction;
@@ -105,20 +129,20 @@ export type Action = TakeAction | PlaceAction | BuildAction | TransformAction;
 export type TakeAction = {
   type: "take";
   // Time in milliseconds.
-  cost: int;
+  cost: number;
 };
 
 export type PlaceAction = {
   type: "place";
   // Time in milliseconds.
-  cost: int;
+  cost: number;
 };
 
 export type BuildAction = {
   type: "build";
   name: string;
   // Time in milliseconds.
-  cost: int;
+  cost: number;
   consumes: Classification[];
   result: Classification[];
 };
@@ -127,7 +151,7 @@ export type TransformAction = {
   type: "transform";
   name: string;
   // Time in milliseconds.
-  cost: int;
+  cost: number;
   consumes: Classification[];
-  result: Classification;
+  result: Classification[];
 };

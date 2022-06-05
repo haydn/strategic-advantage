@@ -1,10 +1,10 @@
-import { Classification, Container } from "./types.js";
+import { Classification, Container, Layer, Terrain } from "./types.js";
 
 const DEFAULT_TERRAIN_COSTS = {
-  LAND: 0,
-  RIVER: null,
-  SHALLOW_WATER: null,
-  DEEP_WATER: null,
+  [Terrain.LAND]: 0,
+  [Terrain.RIVER]: undefined,
+  [Terrain.SHALLOW_WATER]: undefined,
+  [Terrain.DEEP_WATER]: undefined,
 };
 
 const DEFAULT_INFRASTRUCTURE_COSTS = {
@@ -18,7 +18,7 @@ export var ironOre: Classification = {
   description: "100g of loose iron ore.",
   icon: "ore.png",
   autonomous: false,
-  layer: "SURFACE",
+  layer: Layer.SURFACE,
   weight: 100,
   maxContentWeight: 0,
   operationRequirements: [],
